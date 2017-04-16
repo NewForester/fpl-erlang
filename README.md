@@ -4,8 +4,8 @@
 
 This repository contains:
 
-  * notes made while studying Erlang tutorials;
-  * exercises and examples from the tutorial;
+  * notes made while studying Erlang tutorial(s);
+  * exercises and examples from the tutorial(s);
   * any other Erlang notes, exercises and examples of my own devising.
 
 The study was done as part of an investigation into Functional Programming Languages with a view to answering the questions:
@@ -16,7 +16,7 @@ The study was done as part of an investigation into Functional Programming Langu
 The notes and exercises are not a management investigation into why an organisation should use Erlang
 but a technical investigation into what you would need to understand in order to begin programming in Erlang.
 
-While the material here is my own, it owes a great deal to the tutorial.
+While the material here is my own, it owes a great deal to the tutorial(s).
 
 ---
 
@@ -33,7 +33,7 @@ The emphasis is on content, not presentation.
 The exercises and examples are available under an MIT Licence.
 See [MIT-LICENCE.txt](MIT-LICENCE.txt).
 
-See the contents of the `erl` subdirectory.
+See the contents of the `tut*` and `erl` subdirectories.
 
 ---
 

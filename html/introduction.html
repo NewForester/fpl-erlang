@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+    <!-- erlang notes by NewForester is licensed under a Creative Commons Attribution-ShareAlike 4.0 International Licence. -->
+<head>
+    
+<meta charset="UTF-8" /> <meta name="description" content="Notes on the Erlang programming language made while learning a bit about Functional Programming" /> <meta name="keywords" content="Erlang" /> <meta name="author" content="NewForester" /> <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <link rel="stylesheet" href="../styles/style-sheet.css" />
+<title>
+Learn You Some Erlang Notes: Introduction
+</title>
+</head>
+
+<body>
+
+<h1 id="learn-you-some-erlang">Learn You Some Erlang</h1>
+<h2 id="introduction">Introduction</h2>
+<h3 id="about-this-tutorial">About This Tutorial</h3>
+<p>This tutorial is inspired by <a href="http://learnyouahaskell.com/">Learn You A Haskell for Great Good</a>. It attempts to make the language attractive and the learning experience friendly.</p>
+<p>It is aimed at people with a basic knowledge of programming who may or may not know functional programming.</p>
+<p>It attempts to see Erlang for what it is (without hype) by acknowledging its weaknesses as well as lauding its strengths</p>
+<h3 id="so-whats-erlang">So What's Erlang</h3>
+<p>Erlang is a (real world) functional programming language: it seeks to respect referential transparency and data immutability as much as is pragmatically possible.</p>
+<p>Erlang compiles to byte-code and so, like Java, requires a process virtual machine.</p>
+<p>Erlang emphasises concurrency and high reliability through its use of the <code>actor</code> model. Here actors are separate processes with an Erlang virtual machine. Communication between actors is by means of <code>messages</code>: they share no other state.</p>
+<p>Erlang comes with its own development environment comprising:</p>
+<ul>
+<li>compiler, debugger, profiler and test framework;</li>
+<li>the Open Telecom Platform (OTP) Framework;</li>
+<li>a web server and a parser generator;</li>
+<li>the mnesia database, which is not like other databases;</li>
+</ul>
+<p>The Erlang virtual machine allows code to be updated in a running system without interrupting the program. Code can be distributed with ease and so Erlang scales nicely. Errors and faults can be managed in a simple but powerful manner.</p>
+<p>The Erlang policy is &quot;let it crash&quot; since the Erlang run-time will recover in most cases.</p>
+<h3 id="dont-drink-too-much-kool-aid">Don't drink too much Kool-Aid</h3>
+<p>Erlang processes are light weight and this is good for scalability but this, in itself, means little: parallelism does not automatically make things faster and the additional overhead works to slow things down.</p>
+<p>By the same token, Erlang cannot scale in direct proportion to the number of cores the processor has but it is better placed to take advantage of multi-core processors than other languages.</p>
+<p>Erlang does some things well (robust, scalable web-servers for example) but does other things badly (image processing for example).</p>
+<h3 id="what-you-need-to-dive-in">What you need to dive in</h3>
+<p>You need to install the Erlang environment, that is all.</p>
+<p>On many Linux distributions, this can be done by installing a binary package but the tutorial suggests, as expected, that this may install an out-of-date version and recommends installation from the latest source.</p>
+<h3 id="where-to-get-help">Where to get help</h3>
+<p>There are good man pages under Linux.</p>
+<p>HTML documentation is available from the <a href="http://erlang.org/doc/">Official Erlang Web Site</a>.</p>
+<p>There are good coding practices described <a href="http://www.erlang.se/doc/programming_rules.shtml">here</a>.</p>
+<p>The Erlang community site, <a href="http://trapexit.org/">trapexit</a>, has a wiki and mailing lists presented as a forum.</p>
+</body>
+</html>
+
+

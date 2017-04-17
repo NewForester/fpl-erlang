@@ -32,5 +32,7 @@ I intend to do the tutorial on-line at [Learn You Some Erlang](http://learnyouso
 
 Hyper-links reference my notes, not the tutorial source.
 
+  * [Introduction](introduction.html)
+
 </body>
 </html>

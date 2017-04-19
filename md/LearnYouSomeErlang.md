@@ -34,6 +34,7 @@ Hyper-links reference my notes, not the tutorial source.
 
   * [Introduction](introduction.html)
   * [Starting Out](starting-out.html)
+  * [Starting Out (for real)](starting-out-for-real.html)
 
 </body>
 </html>

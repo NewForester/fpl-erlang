@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+    <!-- erlang notes by NewForester is licensed under a Creative Commons Attribution-ShareAlike 4.0 International Licence. -->
+<head>
+    
+<meta charset="UTF-8" /> <meta name="description" content="Notes on the Erlang programming language made while learning a bit about Functional Programming" /> <meta name="keywords" content="Erlang" /> <meta name="author" content="NewForester" /> <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <link rel="stylesheet" href="../styles/style-sheet.css" />
+<title>
+Learn You Some Erlang Notes: Modules
+</title>
+</head>
+
+<body>
+
+<h1 id="learn-you-some-erlang">Learn You Some Erlang</h1>
+<h2 id="modules">Modules</h2>
+<p>Erlang modules are not very complex so this section talks about other things you need to know as well.</p>
+<p>Modules are imported and imported modules may import others.</p>
+<p>The module name corresponds to a file name so the operating system determines what names modules may have: the tutorial does not mention any other restrictions.</p>
+<h3 id="what-are-modules">What are Modules ?</h3>
+<p>In Erlang, as in some other languages, a <code>module</code> is a compilation unit. All functions must be defined in a module.</p>
+<p>Good modules group together related functions but this is good design, not just good Erlang.</p>
+<p>Functions in an external module cannot simply be invoked by function name alone. They may be invoked by module and function name:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    Module:Function(Arguments)</span></code></pre>
+<p>That is, of course, not quite the end of the story.</p>
+<h3 id="module-declaration">Module Declaration</h3>
+<p>In Erlang a <code>module</code> contains <code>attributes</code> and <code>functions</code>.</p>
+<p>The <code>attributes</code> are meta-data that allow useful information about the module to be extracted without needing to examine the code.</p>
+<p>There are many attributes and you may even define your own but one is required and a second is more or less compulsory.</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang">    <span class="kw">-</span><span class="fu">module(</span><span class="dt">Name</span><span class="fu">).</span></code></pre>
+<p>Is required else the Erlang compiler will not recognise the file as an Erlang module. It must be the first attribute (and statement) of the module.</p>
+<p>Name is an atom (so lower case is expected). This is the module name used to invoke functions defined in the module from outside the module.</p>
+<p>The source file name is Name.erl.</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    -export([Function/Arity, ...]).</span></code></pre>
+<p>declares the functions defined within the module that can be invoked from outside the module. Without it the module has no functions that can be called and would therefore be of no practical use.</p>
+<p>The <code>arity</code> declares the number of arguments a function expects: functions with the same name but a different number of arguments are considered to be different functions. This occurs often in Erlang modules.</p>
+<h4 id="a-note-on-functions-...">A note on functions ...</h4>
+<p>The syntax of a function declaration is:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    Name(Args) -&gt; body.</span></code></pre>
+<p>Function names are as for atoms -they must begin with a lower case letter (or worse).</p>
+<p>The final statement of a function is terminated with a full stop (<code>.</code>) so terminating the function. Other statements are separated by a comma (<code>,</code>) and function clauses by a semi-colon (<code>;</code>).</p>
+<p>There is no return statement but the function result is the result of the final statement.</p>
+<p>All Erlang functions return something. Many that have nothing to return, return the atom <code>ok</code>.</p>
+<p>The Erlang shell will print the final result but not any intermediary ones. It is not possible to declare functions in the Erlang shell: they must be declared in module and then imported.</p>
+<p>Here is a simple function declaration:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    add(A,B) -&gt;</span>
+<span class="er">        A + B.</span></code></pre>
+<h4 id="a-note-on-comments-...">A note on comments ...</h4>
+<p>In Erlang, comments are to the end of line and begin with <code>%</code>.</p>
+<h4 id="a-note-on-hello-world-...">A note on Hello World ...</h4>
+<pre class="sourceCode erlang"><code class="sourceCode erlang">    <span class="fu">hello()</span> <span class="kw">-&gt;</span>
+<span class="er">        io:format(&quot;Hello World!~n&quot;).</span></code></pre>
+<h4 id="a-note-on-the-import-attribute-...">A note on the import attribute ...</h4>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    -import(io, [format/1]).</span></code></pre>
+<p>will allow the <code>format</code> function to be invoked without the <code>io:</code> prefix. This practice is usually discouraged (it is considered confusing) except for very commonly used functions, such as those defined in the <code>list</code> module.</p>
+<h4 id="a-note-on-macros-...">A note on macros ...</h4>
+<p>These are very similar to those of C and are used most often to define manifest constants or short functions.</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    -define(PI,3.142)</span>
+<span class="er">    -define(add(A,B),A+B)</span></code></pre>
+<p>To use them in a function, prefix the name with a question mark (<code>?</code>).</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    ?PI * X / 180</span>
+<span class="er">    ?add(2,2)</span></code></pre>
+<h3 id="compiling-the-code">Compiling the Code</h3>
+<p>In Erlang, a module must be compiled to <code>byte code</code> (so that it can be used by the <code>virtual machine</code>) before any of its functions can be invoked.</p>
+<p>If the source module is <code>module.erl</code>, the compiler will produce a byte code module named <code>module.beam</code>.</p>
+<p>Here <code>beam</code> is the name of the virtual machine. The name stands for &quot;Bogdan/Björn's Erlang Abstract Machine&quot;. There have been other abstract machines in the past but they are no longer used.</p>
+<p>There are several ways of invoking the compiler. From the OS shell:</p>
+<pre class="sourceCode bash"><code class="sourceCode bash">    $ erlc <span class="kw">&lt;</span>flags<span class="kw">&gt;</span> module.erl</code></pre>
+<p>From an Erlang module or the Erlang shell:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    compile:file(module)</span></code></pre>
+<p>From the Erlang shell:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang">    <span class="fu">c(</span><span class="ch">module</span><span class="fu">)</span></code></pre>
+<p>However, this last will only look for the module source file in the current directory. To alleviate this inconvenience, the Erlang shell provides the function <code>cd/1</code>, which takes a character string representation with '/' as a directory character.</p>
+<p>The compiler accepts a whole bunch of compilation flags. The most common are:</p>
+<ul>
+<li>debug_info</li>
+<li>{outdir,Dir}</li>
+<li>export_all</li>
+<li>{d,Macro}</li>
+<li>{d,Macro,Value}</li>
+</ul>
+<p>For command line use, precede each with a single dash (<code>-</code>) - Erlang is not GNU.</p>
+<p>For shell use, there is a <code>c/2</code> that takes an array:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    c(module, [debug_info, export_all]).</span></code></pre>
+<p>Likewise <code>compile:file/2</code>.</p>
+<p>You can see now that <code>{d,Macro}</code> is a tuple and <code>export_all</code> is an atom.</p>
+<p>It is also possible to define compiler flags using a module attribute:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    -compile([debug_info, export_all]).</span></code></pre>
+<p>Note: on some platforms it is possible to compile to 'native' code. Native code may be 20% faster than byte code. However, the <code>beam</code> file is bigger as it contains both.</p>
+<h3 id="more-about-module-attributes">More About Module Attributes</h3>
+<p>Module attributes are compile time. The compiler creates a <code>module_info/0</code> function that returns a list of attributes and their values. It also creates a <code>module_info/1</code> function that returns one attribute and its value.</p>
+<p>An attribute and its value is a tuple but the value may itself be a list of tuples (and so on).</p>
+<p>If you were to define your own attribute:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang">    <span class="kw">-</span><span class="fu">author(</span><span class="st">&quot;NewForester&quot;</span><span class="fu">)</span></code></pre>
+<p>Its value could be retrieved with ...</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang">    <span class="fu">author()</span> <span class="kw">-&gt;</span>
+<span class="er">        author(module_info(attributes)).</span>
+<span class="er">    author([{author,A}|_]) -&gt;</span>
+<span class="er">        A;</span>
+<span class="er">    author([_|T]) -&gt;</span>
+<span class="er">        author(T).</span></code></pre>
+<p>This section of the tutorial ends with a suggestion that circular dependencies 'between' modules be avoided.</p>
+</body>
+</html>
+
+

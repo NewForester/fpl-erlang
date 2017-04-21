@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+    <!-- erlang notes by NewForester is licensed under a Creative Commons Attribution-ShareAlike 4.0 International Licence. -->
+<head>
+    
+<meta charset="UTF-8" /> <meta name="description" content="Notes on the Erlang programming language made while learning a bit about Functional Programming" /> <meta name="keywords" content="Erlang" /> <meta name="author" content="NewForester" /> <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <link rel="stylesheet" href="../styles/style-sheet.css" />
+<title>
+Learn You Some Erlang Notes: Syntax In Functions
+</title>
+</head>
+
+<body>
+
+<h1 id="learn-you-some-erlang">Learn You Some Erlang</h1>
+<h2 id="syntax-in-functions">Syntax In Functions</h2>
+<p>This section presents three ways of laying out conditional code.</p>
+<p>In some circumstances you can use any one of them. There are no hard and fast guidelines as to which is to be used when.</p>
+<p>Generally speaking, Pattern Matching with function heads is to be preferred over Case ... Of, which is to be preferred over the If ... End.</p>
+<h3 id="pattern-matching-function-heads">Pattern Matching (Function Heads)</h3>
+<p>In Erlang functions, <code>function heads</code> avoid a lot of if ... else boiler plate.</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    greet(male, Name) -&gt;</span>
+<span class="er">        io:format(&quot;Hello, Mr. ~s!&quot;, [Name]);</span>
+<span class="er">    greet(female, Name) -&gt;</span>
+<span class="er">        io:format(&quot;Hello, Mrs. ~s!&quot;, [Name]);</span>
+<span class="er">    greet(_, Name) -&gt;</span>
+<span class="er">        io:format(&quot;Hello, ~s!&quot;, [Name]).</span></code></pre>
+<p>This defines <code>greet/2</code>, a function with three clauses.</p>
+<p>Whenever the function is invoked and the first argument is the atom 'male', the first clause matches the parameters and the first 'io:format' statement is executed and its result returned.</p>
+<p>Whenever the function is invoked and the first argument is the atom 'female', the second clause matches the parameters and the second 'io:format' statement is executed and its result returned.</p>
+<p>Otherwise the third clause matches (<code>_</code> always matches) and the third statement is executed and its result returned.</p>
+<p>Each clause is terminated with a semi-colon (<code>;</code>) except the last, which is terminated with a full stop (<code>.</code>) to indicate the end of the function.</p>
+<p>Pattern matching can recognised tuples:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    valid_time({Date = {Y,M,D}, Time = {H,Min,S}}) -&gt;</span>
+<span class="er">        io:format(&quot;The Date tuple (~p) says today is: ~p/~p/~p,~n&quot;,[Date,Y,M,D]),</span>
+<span class="er">        io:format(&quot;The time tuple (~p) indicates: ~p:~p:~p.~n&quot;, [Time,H,Min,S]);</span>
+    <span class="fu">valid_time(</span><span class="dt">_</span><span class="fu">)</span> <span class="kw">-&gt;</span>
+<span class="er">        io:format(&quot;Stop feeding me wrong data!~n&quot;).</span></code></pre>
+<p>but cannot, on its own, check the validity of the tuple's contents.</p>
+<h4 id="a-note-on-ioformat-...">A note on <code>io:format</code> ...</h4>
+<p>This is the Erlang analogue to the printf() of C but it is not entirely equivalent.</p>
+<p>Here <code>~s</code> demands the substitution of a string (list). Earlier we saw <code>~n</code> substitute <code>\n</code>. Widely used is <code>~p</code>, which does a pretty print (of tuples and lists and stuff). More later.</p>
+<h3 id="guards-guards">Guards, Guards !</h3>
+<p>In Erlang, <code>guards</code> add constraints to pattern matching much the same way as the constraints seen earlier in list comprehensions:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    right_age(X) when X &gt;= 16, X =&lt; 104 -&gt;</span>
+        <span class="ch">true</span><span class="fu">;</span>
+<span class="er">    right_age(_) -&gt;</span>
+<span class="er">        false.</span></code></pre>
+<p>or:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    wrong_age(X) when X &lt; 16; X &gt; 104 -&gt;</span>
+        <span class="ch">true</span><span class="fu">;</span>
+<span class="er">    wrong_age(_) -&gt;</span>
+<span class="er">        false.</span></code></pre>
+<p>Note the first example separates the guards with <code>,</code>, which may be read as 'and also' while the second example separates the guards with <code>;</code>, which may be read as 'or else'.</p>
+<p>However, they are not the same as the reserved words <code>andalso</code> and <code>orelse</code>. These do not catch an exception, in which case the guard fails whereas <code>,</code> and <code>;</code> will catch the exception and treat it as if the condition were false.</p>
+<p>Guards cannot have side-effects. To ensure this, Erlang restricts what is allowed in guards. Most BIFS, yes, user defined functions, no.</p>
+<p>This means guards may comprise <code>andalso</code> and <code>orelse</code> (and these may be 'nested': not so <code>,</code> and <code>;</code>).</p>
+<h3 id="in-case-...-of">In Case ... of</h3>
+<p>In Erlang, a function header (with or without guards) is very much the same as a 'case' or 'switch' block in other languages. Erlang provides its own version in the <code>case ... of</code> construct.</p>
+<p>This snippet will construct a list of unique elements:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="fu">insert(</span><span class="dt">X</span><span class="fu">,[])</span> <span class="kw">-&gt;</span>
+<span class="er">    [X];</span>
+<span class="er">insert(X,Set) -&gt;</span>
+<span class="er">    case lists:member(X,Set) of</span>
+<span class="er">        true  -&gt; Set;</span>
+<span class="er">        false -&gt; [X|Set]</span>
+    <span class="kw">end</span><span class="fu">.</span></code></pre>
+<p>Pattern matching is used to distinguish the empty and non-empty list case. The Case ... Of contruction is used to distingish the present and not present cases.</p>
+<p>The above might not be good Erlang but I agree that you probably cannot refactor it to use function heads without introducing a second function.</p>
+<p>Here is an example that could:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang">    <span class="fu">beach(</span><span class="dt">Temperature</span><span class="fu">)</span> <span class="kw">-&gt;</span>
+<span class="er">        case Temperature of</span>
+<span class="er">            {celsius, N} when N &gt;= 20, N =&lt; 45 -&gt;</span>
+                <span class="ch">&#39;favorable&#39;</span><span class="fu">;</span>
+<span class="er">            {kelvin, N} when N &gt;= 293, N =&lt; 318 -&gt;</span>
+                <span class="ch">&#39;scientifically favorable&#39;</span><span class="fu">;</span>
+<span class="er">            {fahrenheit, N} when N &gt;= 68, N =&lt; 113 -&gt;</span>
+                <span class="ch">&#39;favorable in the US&#39;</span><span class="fu">;</span>
+<span class="er">            _ -&gt;</span>
+                <span class="ch">&#39;avoid beach&#39;</span>
+    <span class="kw">end</span><span class="fu">.</span></code></pre>
+<p>Here is the example using function heads:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    beachf({celsius, N}) when N &gt;= 20, N =&lt; 45 -&gt;</span>
+        <span class="ch">&#39;favorable&#39;</span><span class="fu">;</span>
+<span class="er">    beachf({kelvin, N}) when N &gt;= 293, N =&lt; 318 -&gt;</span>
+        <span class="ch">&#39;scientifically favorable&#39;</span><span class="fu">;</span>
+<span class="er">    beachf({fahrenheit, N}) when N &gt;= 68, N =&lt; 113 -&gt;</span>
+        <span class="ch">&#39;favorable in the US&#39;</span><span class="fu">;</span>
+<span class="er">    beachf(_) -&gt;</span>
+        <span class="ch">&#39;avoid beach&#39;</span><span class="fu">.</span></code></pre>
+<h3 id="what-the-if">What the If !?</h3>
+<p>There is an <code>if ... end</code> statement in Erlang. The view in the tutorial is that this is a valid construct with a confusing name because it is not like the 'if' of other languages.</p>
+<p>In Erlang, an If ... End statement also uses <code>guard patterns</code>. See the <a href="../tut-lyse/what_the_if.erl">what_the_if</a> modules for the examples.</p>
+<p>The simple form of the statement has one clause:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    if Guard -&gt; Expression end</span></code></pre>
+<p>There may be many clauses providing something similar to 'elif' in other languages:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    if Guard -&gt; Expression;</span>
+<span class="er">       Guard -&gt; Expression;</span>
+       <span class="fu">...</span>
+    <span class="kw">end</span></code></pre>
+<p>Everything in Erlang must return something so often the final guard is <code>true</code> which provides someting similar to 'else' in other languages:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    if Guard -&gt; Expression</span>
+<span class="er">       true  -&gt; Expression</span>
+    <span class="kw">end</span></code></pre>
+<h4 id="a-note-on-there-being-no-else-...">A note on there being no else ...</h4>
+<p>In an imperative language, If ... Else is about doing one thing or another such as calling one of two procedures (possibly with side-effects).</p>
+<p>In Erlang, If ... End is about returning a result perhaps by calling one of two functions (without side-effects).</p>
+<p>In an imperative language, the Else clause is optional - no harm done when the If evaluates to false.</p>
+<p>In Erlang, the absence of True clause will mean an exception is thrown should the If clause evaluate to false.</p>
+<p>In Erlang, the If ... End statement may have many clauses. A final True clause is much more like the 'default' of the switch statement in C.</p>
+<p>The <code>true</code> clause is thus a catch-all and there are grounds for viewing these as bad.</p>
+<p>In C, the catch-all should print an 'unexpected value' (error) message. In Python, the catch-all should raise an exeception. In Erlang, the exeception is thrown for you.</p>
+<p>In all cases, the programmer should add good code to handle the unexpected value. Anything else is GIGO.</p>
+<p>Thus in Erlang:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    if X &gt; Y -&gt; a()</span>
+<span class="er">     ; X &lt; Y -&gt; b()</span>
+<span class="er">     ; X ==Y -&gt; c()</span>
+    <span class="kw">end</span></code></pre>
+<p>may be considered better than:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    if X &gt; Y -&gt; a()</span>
+<span class="er">     ; X &lt; Y -&gt; b()</span>
+     <span class="fu">;</span> <span class="ch">true</span>  <span class="kw">-&gt;</span> <span class="fu">c()</span>
+    <span class="kw">end</span></code></pre>
+<h3 id="which-to-use">Which to Use ?</h3>
+<p>There is no clear cut answer to such a question. In some circumstances, one of three methods is a clear winner but in many cases you could equally well use any. There is really is no performance penalty.</p>
+<p>The function heads requires a function, use this method if there is an obvious function to implement. Consider using one of the others when you would otherwise be adding a function for no good reason.</p>
+<p>The Case ... Of can be used on more than one variable (eg <code>case {A,B} of</code>) but when there is more than one variable, most Erlang progrmmers will opt for the function heads approach.</p>
+<p>The If ... End was added to the language for when there are no patterns, only guards. Use them this way.</p>
+</body>
+</html>
+
+

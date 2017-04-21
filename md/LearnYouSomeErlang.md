@@ -36,6 +36,7 @@ Hyper-links reference my notes, not the tutorial source.
   * [Starting Out](starting-out.html)
   * [Starting Out (for real)](starting-out-for-real.html)
   * [Modules](modules.html)
+  * [Syntax In Functions](syntax-in-functions.html)
 
 </body>
 </html>

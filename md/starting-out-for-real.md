@@ -112,13 +112,13 @@ The following 30 atoms are reserved words in Erlang:
   * Arithmetic operators        - div, rem
   * Boolean operators           - and, andalso, not, or, orelse, xor
   * Bit sequence operators      - band, bnot, bor, bsl, bsr, bxor
+  * Function conditionals       - when, if ... end, case ... of ... end
 
-  * after, begin
-  * case, catch, cond
-  * end
-  * fun, if, let,
-  * of, query, receive
-  * try, when
+  * after begin
+  * catch cond
+  * (end)
+  * fun let
+  * query receive try
 
 
 ### Boolean Algebra and Comparison Operators

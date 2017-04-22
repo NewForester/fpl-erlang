@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+    <!-- erlang notes by NewForester is licensed under a Creative Commons Attribution-ShareAlike 4.0 International Licence. -->
+<head>
+    
+<meta charset="UTF-8" /> <meta name="description" content="Notes on the Erlang programming language made while learning a bit about Functional Programming" /> <meta name="keywords" content="Erlang" /> <meta name="author" content="NewForester" /> <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <link rel="stylesheet" href="../styles/style-sheet.css" />
+<title>
+Learn You Some Erlang Notes: Types
+</title>
+</head>
+
+<body>
+
+<h1 id="learn-you-some-erlang">Learn You Some Erlang</h1>
+<h2 id="types-or-lack-thereof">Types (or lack thereof)</h2>
+<p>Erlang uses dynamic, not static, typing. This is disconcerting for those who have come to rely on the latter to build safe code.</p>
+<p>The tutorial takes the view the weakly typed languages convert between types implicitly (with gay abandon) while strongly typed lanaguage require the programmer convert types explicitly when they feel the need.</p>
+<h3 id="dynamite-strong-types">Dynamite Strong Types</h3>
+<p>In Erlang code, 'variables' and 'functions' are written without types.</p>
+<p>It is clear from the pattern {X,Y} that a tuple of two is expected but that tuple could be a pair of atoms, an atom and a number or even another tuple and a list.</p>
+<p>Only at run-time will it matter if what is supplied is not compatible with what is expected. This is roughly what is mean by dynamic typing - bad types can only be caught at run-time and not earlier (at compile-time).</p>
+<p>There is the general view, with which I concur, that catching errors early is good as it is cheaper to fix them sooner rather than later. The idea behind statically typed langauges is that the compiler can catch most errors before the code is ever run. Proponents of such languages have a point but it is kind of narrow minded to suggest all errors of any importance are type typos.</p>
+<p>The Ericsson AXD 301 ATM switch comprises over 1 million lines of code and yet is reported to have 99.9999999% availability.</p>
+<p>There is no claim that the switch is bug free but the point here is that it is extremely robust. Individual parts of the switch may crash but the whole switch never crashes - it recovers. This robustness in the result of a lot of other design choice: the dynamic or static nature of the programming language is irrelevant.</p>
+<p>To put it another way: there are those than think that using a safer programming language makes them safer programmers.</p>
+<h3 id="type-conversions">Type Conversions</h3>
+<p>Erlang is strongly typed: it has no implicit type conversions (other than integer to float).</p>
+<p>Conversion is by means of casting and casting is by means of function calls of the form <code>&lt;type&gt;_to_&lt;type&gt;</code>.</p>
+<p>These functions are all implemented as BIFs (many could not be implemented in Erlang). All are in the Erlang module and, it seems, all require the module name:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    1&gt; erlang:list_to_integer(&quot;54&quot;).</span>
+    <span class="dv">54</span>
+<span class="er">    2&gt; erlang:integer_to_list(54).</span>
+    <span class="st">&quot;54&quot;</span></code></pre>
+<p>There are going on 30 such conversions (so not all possibilities are supported).</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    atom_to_binary/2            atom_to_list/1</span>
+<span class="er">    binary_to_atom/2            binary_to_existing_atom/2</span>
+<span class="er">    binary_to_list/1            binary_to_term/1</span>
+<span class="er">    bitstring_to_list/1</span>
+<span class="er">    float_to_list/1             fun_to_list/1</span>
+<span class="er">    integer_to_list/1           integer_to_list/2</span>
+<span class="er">    iolist_to_binary/1          iolist_to_atom/1</span>
+<span class="er">    list_to_atom/1              list_to_binary/1</span>
+<span class="er">    list_to_bitstring/1         list_to_existing_atom/1</span>
+<span class="er">    list_to_float/1             list_to_integer/2</span>
+<span class="er">    list_to_pid/1               list_to_tuple/1</span>
+<span class="er">    pid_to_list/1               port_to_list/1</span>
+<span class="er">    ref_to_list/1</span>
+<span class="er">    term_to_binary/1            term_to_binary/2</span>
+    <span class="fu">tuple_to_list</span><span class="kw">/</span><span class="dv">1</span></code></pre>
+<p>At a guess, for those functions that take two parameters, the second parameters allows one or more options to be passed to the conversion. As a list of atoms, of course.</p>
+<h3 id="to-guard-a-data-type">To Guard a Data Type</h3>
+<p>Erlang tuples and lists and other data types give visual clues that allow type specfic pattern matching. Guards were introduced to constrain values. The <code>test type</code> BIFs allow guards to test the type of arguments so they can also constrain types.</p>
+<p>The full list is</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    is_atom/1           is_binary/1</span>
+<span class="er">    is_bitstring/1      is_boolean/1        is_builtin/3</span>
+<span class="er">    is_float/1          is_function/1       is_function/2</span>
+<span class="er">    is_integer/1        is_list/1           is_number/1</span>
+<span class="er">    is_pid/1            is_port/1           is_record/2</span>
+<span class="er">    is_record/3         is_reference/1      is_tuple/1</span></code></pre>
+<p>The other BIFs allowed in guards are:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    abs/1               bit_size/1              byte_size/1</span>
+<span class="er">    element/2           float/1                 hd(List)/1</span>
+<span class="er">    length/1            node/0                  node/1</span>
+<span class="er">    round/1             self/0                  size/1</span>
+<span class="er">    tl/1                trunc/1                 tuple_size/1</span></code></pre>
+<h4 id="a-note-about-testing-for-the-right-cases-...">A note about testing for the right cases ...</h4>
+<p>The reason Erlang provides a whole bunch of test type functions instead of a single type_of/1 -&gt; Type function is that Erlang seeks to encourage coding for what you do know, not what you don't.</p>
+<p>Code for the cases you know and expect and allow Erlang to throw exceptions for everything else. This is an interesting take on defensive programming.</p>
+<h4 id="a-note-about-erlang-data-structures-...">A note about Erlang data structures ...</h4>
+<p>Data structues in Erlang may seem limited at first sight but they are suprisingly powerful:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    {person, {name, &lt;&lt;&quot;Fred T-H&quot;&gt;&gt;},</span>
+        <span class="fu">{</span><span class="ch">qualities</span><span class="fu">,</span> <span class="fu">[</span><span class="st">&quot;handsome&quot;</span><span class="fu">,</span> <span class="st">&quot;smart&quot;</span><span class="fu">,</span> <span class="st">&quot;honest&quot;</span><span class="fu">,</span> <span class="st">&quot;objective&quot;</span><span class="fu">]},</span>
+<span class="er">        {faults, [&quot;liar&quot;]},</span>
+<span class="er">        {skills, [&quot;programming&quot;, &quot;bass guitar&quot;, &quot;underwater breakdancing&quot;]}}.</span></code></pre>
+<h3 id="for-type-junkies">For Type Junkies</h3>
+<p>Erlang was developed with dynamic typing simply because the original team were used to such languages.</p>
+<p>There have been several attempts to add static typing to Erlang but without success. Part of the reason is that processes and messages are fundamental Erlang types.</p>
+<p>The folk that wrote the Haskell compiler failed. The HiPE project also failed but it did produce Dialyzer, a staic analysis tool still in use today.</p>
+<p>The typing system Dialyzer uses is called 'success typing'. It does not seek to infer the type of every expression but does guarantee that any type it does infer is correct and that any type errors it finds really are errors.</p>
+<p>Take the <code>and</code> function of Erlang. All that can be said about it is that it returns true or false and that for it to return true, both parameters must also be true. You cannot even say that it takes two Booleans and returns a third.</p>
+<p>Another tool, TypEr can be used to generate annotations for functions but it is unclear why you would want to.</p>
+</body>
+</html>
+
+

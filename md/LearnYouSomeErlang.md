@@ -38,6 +38,7 @@ Hyper-links reference my notes, not the tutorial source.
   * [Modules](modules.html)
   * [Syntax In Functions](syntax-in-functions.html)
   * [Types (or lack thereof](types.html)
+  * [Recursion](recursion.html)
 
 </body>
 </html>

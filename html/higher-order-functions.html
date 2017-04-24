@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+    <!-- erlang notes by NewForester is licensed under a Creative Commons Attribution-ShareAlike 4.0 International Licence. -->
+<head>
+    
+<meta charset="UTF-8" /> <meta name="description" content="Notes on the Erlang programming language made while learning a bit about Functional Programming" /> <meta name="keywords" content="Erlang" /> <meta name="author" content="NewForester" /> <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <link rel="stylesheet" href="../styles/style-sheet.css" />
+<title>
+Learn You Some Erlang Notes: Higher Order Functions
+</title>
+</head>
+
+<body>
+
+<h1 id="learn-you-some-erlang">Learn You Some Erlang</h1>
+<h2 id="higher-order-functions">Higher Order Functions</h2>
+<h3 id="lets-get-functional">Let's get functional</h3>
+<p>An important part of Erlang and all functional languages is the ability to pass a function as a parameter to another function (and to return a function from a function).</p>
+<p>Functions that take or return other functions are named <code>higher order functions</code>. They are another concept rooted in mathematics. The concept is call lambda calculus.</p>
+<p>In lambda calculus, everything is a function, even numbers are functions.</p>
+<p>See <code>one/1</code>, <code>two/1</code> and <code>add/2</code> in <a href="../tut_lyse.erl">Higher Order Functions</a>.</p>
+<p>Some new, not very pretty, notation has been added. To pass a function as a parameter, you have to write it: <code>fun Module:Function/Arity</code>.</p>
+<p>To illustrate the advantages of passing functions as functions consider:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang">    <span class="fu">increment([])</span> <span class="kw">-&gt;</span> <span class="fu">[];</span>
+<span class="er">    increment([H|T]) -&gt; [H+1|increment(T)].</span>
+
+    <span class="fu">decrement([])</span> <span class="kw">-&gt;</span> <span class="fu">[];</span>
+<span class="er">    decrement([H|T]) -&gt; [H-1|decrement(T)].</span></code></pre>
+<p>These functions are very similar. The process-a-list part is the same, only the operation performed on each element of the list is different.</p>
+<pre class="elang"><code>    map(_,[]) -&gt; [];
+    map(F,[H|T]) -&gt; [F(H)|map(F,T)].
+
+    incr(X) -&gt; X+1.
+    decr(X) -&gt; X-1.</code></pre>
+<p>Separates the two nicely but now we have three, not two, functions and four, not two, lines of code. We need two 'anonymous' functions that can be used without ever being declared.</p>
+<h3 id="anonymous-functions">Anonymous functions</h3>
+<p>In Erlang, anonymous functions are called <code>funs</code> because they too use the <code>fun</code> keyword:'</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang">    <span class="kw">fun</span> <span class="fu">(</span><span class="dt">Args1</span><span class="fu">)</span> <span class="kw">-&gt;</span>
+<span class="er">            Expression1, Exp2, ...., ExpN;</span>
+        <span class="fu">...</span>
+<span class="er">        (ArgsN)-&gt;</span>
+<span class="er">            Expression1, Exp2, ...., ExpN</span>
+    <span class="kw">end</span></code></pre>
+<p>The simplest case possible is something like:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    1&gt; Fn = fun() -&gt; ok end.</span>
+    <span class="fu">#</span><span class="dt">Fun</span><span class="kw">&lt;</span><span class="fu">...</span><span class="kw">&gt;</span>
+<span class="er">    2&gt; Fn().</span>
+<span class="er">    ok</span></code></pre>
+<p>but it rather defeats the point. Most useful, here is the increment/decrement again but without the silly one liners:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    1&gt; hhfuns:map(fun(X) -&gt; X + 1 end, L).</span>
+<span class="er">    [2,3,4,5,6]</span>
+<span class="er">    2&gt; hhfuns:map(fun(X) -&gt; X - 1 end, L).</span>
+<span class="er">    [0,1,2,3,4]</span></code></pre>
+<p>The loop has been abstracted away into <code>map/2</code> and the programmer can focus on what is to be done rather than on how to do it.</p>
+<h4 id="closures">Closures</h4>
+<p>To introduce and understand <code>closures</code> consider the following:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    PrepareAlarm = fun(Room) -&gt;</span>
+<span class="er">        io:format(&quot;Alarm set in ~s.~n&quot;,[Room]),</span>
+<span class="er">        fun() -&gt; io:format(&quot;Alarm tripped in ~s! Call Batman!~n&quot;,[Room]) end</span>
+        <span class="kw">end</span><span class="fu">.</span></code></pre>
+<p>The invariant PrepareAlarm has been bound an anonymous function. Next:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    1&gt; AlarmReady = PrepareAlarm(&quot;bathroom&quot;).</span>
+<span class="er">    Alarm set in bathroom.</span></code></pre>
+<p>This runs the anonymous function, which prints the message and returns another anonymous function, which is bound to AlarmReady.</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    2&gt; AlarmReady()</span>
+<span class="er">    Alarm tripped in bathroom! Call Batman!</span></code></pre>
+<p>How does AlarmReady know the alarm is in the bathroom ?</p>
+<p>The second anonymous function is defined in terms of Room, which is within the scope of the first anonymous function. Inheritance of scope is quite normal in programming languages that have scope.</p>
+<p>At the time the second anonymous function is instantiated, Room had the value 'bathroom'. Room with the value 'bathroom' becomes part of the scope of the second anonymous function and this remains so even after the first anonymous function has returned and it's Room has gone out of scope.</p>
+<p>This is seems perfectly normal in the example above but it is not how many languages behave. This behaviour is typical (even essential) to functional programming languages and is called <code>closure</code>.</p>
+<p>Other descriptions of closure have confused but Batman makes it look so simple.</p>
+<p>The tutorial suggest closures are used to carry state, which is indeed what is happening. Be careful who you say that to: functional programmers do not believe in state.</p>
+<h4 id="anonymous-function-limitations">Anonymous Function Limitations</h4>
+<p>One of the limitations of anonymous functions in Erlang was they could not call themselves, so they could not be used to implement recursion. From Erlang 17 onwards this lacuna has been fixed. Anonymous function can have a name limited to their own scope so that they can call themselves:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    fun Name1(Args1) -&gt;</span>
+<span class="er">            Expression1, Exp2, ...., ExpN;</span>
+        <span class="fu">...</span>
+<span class="er">        NameN(ArgsN)-&gt;</span>
+<span class="er">            Expression1, Exp2, ...., ExpN</span>
+    <span class="kw">end</span></code></pre>
+<h3 id="maps-filters-folds-and-more">Maps, filters, folds and more</h3>
+<p>Earlier the map/2 abstraction was introduced. It can be used to apply any function to each element of a list. It hides the details of how this is done and all the programmer needs to do it supply the function.</p>
+<p>There are other similar abstractions. Filter and fold are two of the most powerful. See <code>filter/2</code> and <code>fold/2</code> in <a href="../tut_lyse.erl">Higher Order Functions</a> for examples.</p>
+<p>Filter takes a function called a predicate, applies the predicate to each element of the list and returns only those elements for which the predicate returns true.</p>
+<p>Fold takes a function and applies it to each element of the list and the accumulator. This reduces the list to the final accumulator value. The choice here is the initial value of the accumulator.</p>
+<p>Fold can be used to find the minimum and maximum of the list (using head as the initial value of the accumulator) and sum over the elements of a list (using 0 as the initial value of the accumulator).</p>
+<p>There are no constraints on what the accumulator is. Reverse, map and filter can all be implemented in terms of fold if the accumulator is a list.</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    fold(_, Start, []) -&gt; Start;</span>
+<span class="er">    fold(F, Start, [H|T]) -&gt; fold(F, F(H,Start), T).</span>
+
+<span class="er">    reverse(L) -&gt;</span>
+<span class="er">        fold(fun(X,Acc) -&gt; [X|Acc] end, [], L).</span>
+
+<span class="er">    map2(F,L) -&gt;</span>
+<span class="er">        reverse(fold(fun(X,Acc) -&gt; [F(X)|Acc] end, [], L)).</span>
+
+<span class="er">    filter2(Pred, L) -&gt;</span>
+<span class="er">        F = fun(X,Acc) -&gt;</span>
+<span class="er">            case Pred(X) of</span>
+<span class="er">                true  -&gt; [X|Acc];</span>
+<span class="er">                false -&gt; Acc</span>
+            <span class="kw">end</span>
+        <span class="kw">end</span><span class="fu">,</span>
+<span class="er">        reverse(fold(F, [], L)).</span></code></pre>
+<p>Erlang provides many abstractions in the list library so in practice you study and use those instead of writing your own recursive list functions. See <a href="http://erldocs.com/18.0/stdlib/lists.html">documentation on lists</a>.</p>
+</body>
+</html>
+
+

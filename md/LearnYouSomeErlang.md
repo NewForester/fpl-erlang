@@ -39,6 +39,7 @@ Hyper-links reference my notes, not the tutorial source.
   * [Syntax In Functions](syntax-in-functions.html)
   * [Types (or lack thereof](types.html)
   * [Recursion](recursion.html)
+  * [Higher Order Functions](higher-order-functions.html)
 
 </body>
 </html>

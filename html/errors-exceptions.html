@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+    <!-- erlang notes by NewForester is licensed under a Creative Commons Attribution-ShareAlike 4.0 International Licence. -->
+<head>
+    
+<meta charset="UTF-8" /> <meta name="description" content="Notes on the Erlang programming language made while learning a bit about Functional Programming" /> <meta name="keywords" content="Erlang" /> <meta name="author" content="NewForester" /> <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <link rel="stylesheet" href="../styles/style-sheet.css" />
+<title>
+Learn You Some Erlang Notes: Errors and Exceptions
+</title>
+</head>
+
+<body>
+
+<h1 id="learn-you-some-erlang">Learn You Some Erlang</h1>
+<h2 id="errors-and-exceptions">Errors and Exceptions</h2>
+<p>In Erlang, you are not encouraged to handle errors and exceptions. The motto is let it crash (and fix the source code).</p>
+<p>The section discusses the compilation and run-time errors you (the beginner) are likely to encounter because you will want to fix the source code to remove them.</p>
+<p>It then discusses exceptions at length. These are the main error mechanism in the functional subset of the language: the mechanisms for the concurrent subset of the language will be covered with in another chapter.</p>
+<p>It introduces the surprisingly complex exception mechanism, covers the older, simpler, one and ends with an example of a non-local return were code deliberately throws an exception as a normal part of execution: nothing exceptional there.</p>
+<h3 id="a-compilation-of-errors">A Compilation of Errors</h3>
+<p>Here are the most common compilation errors and what to do about them:</p>
+<ol style="list-style-type: decimal">
+<li><p>Error: module name 'madule' does not match file name 'module'<br> Check for a typo in your <code>-module</code> attribute.</p></li>
+<li><p>Warning: function some_function/0 is unused<br> Check for a typo or omission or the wrong arity in your <code>-export</code> attribute(s).</p></li>
+<li><p>Error: function some_function/1 undefined<br> As above but also check the function compiled and is correctly terminated with a full-stop.</p></li>
+<li><p>Error: syntax error before: 'SomeCharacterOrWord'<br> Often unmatched parenthesis, braces or bracket or wrong punctuation character (comma where there should be a semi-colon)</p></li>
+<li><p>Error: syntax error before<br> Often means the previous line has not been terminated properly (e.g. missing full-stop at end of function).</p></li>
+<li><p>Warning: this expression will fail with a 'badarith' exception<br> An arithmetic expression is junk, probably due to a typo.</p></li>
+<li><p>Warning: variable 'Var' is unused<br> Could be a typo or a logic bug. If the variable is genuinely unused, pre-pend or replace with '_'.</p></li>
+<li><p>Warning: a term is constructed, but never used<br> Some expression other than the final one is unbound. Check your code.</p></li>
+<li><p>Error: head mismatch<br> Check the function header for typos; check the arity is the same for all clauses.</p></li>
+<li><p>Warning: this clause cannot match because a previous clause at line 4 always matches<br> Check you haven't got a catch all where it should not be.</p></li>
+<li><p>Error: variable 'A' unsafe in 'case'<br> Variable bound inside a case used outside of it. Consider using MyVar = case ... of instead</p></li>
+</ol>
+<p>Note: for syntax errors, check the line and then the function before the one with the error.</p>
+<p>The most common errors to date are missing a terminating full-stop, semi-colon or comma and failing to match parentheses, braces and brackets.</p>
+<p>Correcting one error may allow the compiler to flag others so the fix one-at-a-time approach works quite well.</p>
+<h3 id="no-your-logic-is-wrong">No, YOUR logic is wrong!</h3>
+<p>Logical errors belong to the programmer. One of the most common is getting conditionals wrong so the code executes the wrong case.</p>
+<p>Thorough testing of code before release is recommended and Erlang has tools, such as test frameworks and static analysers, that may help but it is still very much up to the programmer to avoid logic errors and to debug the inevitable.</p>
+<p>One of the nasty things about logic errors is they behave like rain water that seeps into the ground and bubbles up later miles away. When the bug become apparent it is often very difficult to find out where it originated.</p>
+<p>Hence the Erlang motto &quot;let it crash, let is crash, let is crash&quot; in the belief that such an approach will tend to crash the code sooner rather than later making it easier to find the source of each problem.</p>
+<h3 id="run-time-errors">Run-time Errors</h3>
+<p>Run-time errors are destructive: they crash the process. Erlang has ways of dealing with these but you still need to understand what they mean in order to fix them.</p>
+<ol style="list-style-type: decimal">
+<li><p>(function_clause) no function clause matching<br> Check header clauses for a missing case or badly expressed pattern or guard.</p></li>
+<li><p>(case_clause) no case clause matching<br> Check case ... of ... end for missing clause - avoid adding a catch-all.</p></li>
+<li><p>(if_clause) no true branch found when evaluating an if expression<br> Check if ... end for missing clause - avoid adding the true catch-all.</p></li>
+<li><p>(badmatch) no match of right hand side value<br> Check patterns - something not possible is being attempted like binding to a variable a second time or trying to match a list with a tuple.</p></li>
+<li><p>(badarg) bad argument<br> Check arguments - indicates pattern and guard match but the argument is the wrong type</p></li>
+<li><p>(undef) undefined function<br> Check for typo in the module and function names; check the number of parameters; check the function is exported; check the Erlang search path.</p></li>
+<li><p>(badarith) bad argument in an arithmetic expression<br> Check operands - one of them is not a number or some other domain error like divide by zero</p></li>
+<li><p>(badfun) bad function<br> Check arguments to higher order function - one that should be a function is not.</p></li>
+<li><p>(badarity) interpreted function with arity nn called with mmm arguments<br> Check arguments to higher order function - there are too many or too few arguments.</p></li>
+<li><p>(system_limit) system_limit<br> Oops, this may crash the VM. It usually means 'too many' of something so check for an infinite allocation loop or a resource leak.</p></li>
+</ol>
+<p>The (atom) is what you need to catch if you want to handle the error.</p>
+<h3 id="raising-exceptions">Raising Exceptions</h3>
+<p>Sometimes raising an exception is a good thing to do. One example is to signal an impossible condition or one not (yet) handled. Another is to perform a non-local return.</p>
+<p>Erlang has three kinds of exceptions: errors, exits and throws.</p>
+<h4 id="errors">Errors</h4>
+<p>Calling <code>erlang:error(Reason)</code> provokes a run-time <code>error</code>. The current process is terminated and a stack trace generated.</p>
+<p>Errors signal conditions that calling code cannot be expected to handle and it is best to bail out and let the programmer reconsider.</p>
+<p>The Reason is an atom of your choice: it need not be, and perhaps should not be, one of those listed in the previous section.</p>
+<h4 id="exits">Exits</h4>
+<p>An <code>exit</code> is produced by a call to exit/1 or exit/2. The latter is concerned with concurrency.</p>
+<p>Exits are similar to errors (once there were only exits) except no stack trace is produced: an exit is normal, there is nothing to debug.</p>
+<p>In a concurrent environment, both generate a message that is sent to all processes listening for messages from the deceased process. An error means they all get sent a potentially large message with a long stack trace that they are not going to do anything with other than perhaps log it.</p>
+<h4 id="throws">Throws</h4>
+<p>A <code>throw</code> is an exception that calling software is expected to handle.</p>
+<p>The throw/1 BIF makes a non-local return. Some other function on the stack is expect to catch the throw and to process the single argument passed to throw. The argument could simply be an atom but it may be more complex.</p>
+<p>Non-local returns may be in deep-nested routines to return an error to the top-level without all the intermediary levels having to check for failure. Here <code>{error,Reason}</code> might be thrown.</p>
+<p>Another example might be to throw found (or not found) from a recursive find algorithm on a non-trivial data structure such as a tree. The top level routine of the search would catch the throw and decided what to return to the caller. That might be a value passed to the search but the search itself need not know.</p>
+<p>It is good practice to catch a throw within the same module.</p>
+<h3 id="dealing-with-exceptions">Dealing with Exceptions</h3>
+<p>Throws, errors and even exits can be handled using a <code>try ... catch ... after ... end</code> block:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    try Expression of</span>
+<span class="er">        SuccessPattern1 [Guards] -&gt; Expression1;</span>
+           <span class="fu">...</span>
+<span class="er">        SuccessPatternN [Guards] -&gt; ExpressionN1</span>
+    <span class="kw">catch</span>
+<span class="er">        TypeOfError:ExceptionPattern1 -&gt; ExceptionExpression1;</span>
+           <span class="fu">...</span>
+<span class="er">        TypeOfError:ExceptionPatternN -&gt; ExceptionExpressionN</span>
+    <span class="kw">after</span>
+<span class="er">        AnotherExpression</span>
+    <span class="kw">end</span></code></pre>
+<p>The code in Expression is said to be <code>protected</code>: any exception thrown is caught. Note that it is these exceptions that are caught, not any exception that might be thrown by a success clause.</p>
+<p>The TypeOfError is one of <code>{throw,error,exit}</code> with throw assumed when no TypeOfError is given.</p>
+<p>See the code examples in <a href="../tut_lyse.erl">Exception</a>.</p>
+<p>The <code>after</code> is code that is always executed regardless of whether an exception was thrown or not. It does not 'return' a value and so it limited to side-effects. The classic use of this clause is to release resources such as closing the file that was being read at the time of the exception.</p>
+<p>In practice, Expression is a list of comma separated expressions. The result of the last expression being used for the pattern matching between <code>of ... catch</code>.</p>
+<p>The result of the <code>try ... end</code> block is the result of the success or exception clause that is evaluated. If the result is irrelevant there may be no success clauses, in which case, the <code>of</code> may be omitted.</p>
+<p>Note that it is important that no (tail) recursion is used between <code>try ... of</code> because tail recursion assumes no context but context is required is catch is to work. Tail recursion in success clauses does work but you can always put the tail recursion in a subroutine anyway.</p>
+<h3 id="wait-theres-more">Wait, there's more!</h3>
+<p>There is an older <code>catch</code> construct that looks simple but has some drawbacks.</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    1&gt; catch throw(whoa).</span>
+    <span class="ch">whoa</span>
+<span class="er">    2&gt; catch exit(die).</span>
+<span class="er">    {&#39;EXIT&#39;,die}</span>
+<span class="er">    3&gt; catch 1/0.</span>
+<span class="er">    {&#39;EXIT&#39;,{badarith,[{erlang,&#39;/&#39;,[1,0]},</span>
+<span class="er">                   {erl_eval,do_apply,5},</span>
+<span class="er">                   {erl_eval,expr,5},</span>
+<span class="er">                   {shell,exprs,6},</span>
+<span class="er">                   {shell,eval_exprs,6},</span>
+<span class="er">                   {shell,eval_loop,3}]}}</span>
+<span class="er">    4&gt; catch 2+2.</span>
+<span class="er">    4</span></code></pre>
+<p>Errors and exit have the same representation and throw is as before.</p>
+<p>The Reason that accompanies the error as an atom and a stack trace. The first element of the stack trace is the top-of-stack and shows the module, function and arguments in error. The other entries are module, function, arity.</p>
+<p>You can also retrieve the stack trace using <code>erlang:get_stacktrace/0</code>.</p>
+<p>One issue with this mechanism is operator precedence:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    4&gt; X = catch 4+2.</span>
+<span class="er">    * 1: syntax error before: &#39;catch&#39;</span>
+<span class="er">    5&gt; X = (catch 4+2).</span>
+    <span class="dv">6</span></code></pre>
+<p>The other is that if you are unluckly you cannot tell the different between a caught exception and a normal return:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    one_or_two(1) -&gt; return;</span>
+<span class="er">    one_or_two(2) -&gt; throw(return).</span></code></pre>
+<p>illustrates the problem:</p>
+<pre class="elang"><code>    6&gt; c(exceptions).
+    {ok,exceptions}
+    7&gt; catch exceptions:one_or_two(1).
+    return
+    8&gt; catch exceptions:one_or_two(2).
+    return</code></pre>
+<h3 id="try-a-try-in-a-tree">Try a try in a tree</h3>
+<p>See <code>has_value/2</code> in <a href="../tut_lyse/tree.erl">Tree</a> for an example of using throw to create a non-local return.</p>
+<p>Essentially, if the value is found, the atom <code>true</code> is thrown and caught. Otherwise the atom <code>false</code> is returned to indicate not found. There is no checking of return values to decide what to do next as there is in `has_value1/2'.</p>
+</body>
+</html>
+
+

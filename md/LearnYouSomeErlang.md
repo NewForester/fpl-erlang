@@ -40,6 +40,7 @@ Hyper-links reference my notes, not the tutorial source.
   * [Types (or lack thereof](types.html)
   * [Recursion](recursion.html)
   * [Higher Order Functions](higher-order-functions.html)
+  * [Errors and Exceptions](errors-exceptions.html)
 
 </body>
 </html>

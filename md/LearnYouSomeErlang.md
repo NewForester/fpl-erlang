@@ -41,6 +41,7 @@ Hyper-links reference my notes, not the tutorial source.
   * [Recursion](recursion.html)
   * [Higher Order Functions](higher-order-functions.html)
   * [Errors and Exceptions](errors-exceptions.html)
+  * [Functional Problem Solving](functional-problem-solving.html)
 
 </body>
 </html>

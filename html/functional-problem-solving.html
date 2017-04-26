@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+    <!-- erlang notes by NewForester is licensed under a Creative Commons Attribution-ShareAlike 4.0 International Licence. -->
+<head>
+    
+<meta charset="UTF-8" /> <meta name="description" content="Notes on the Erlang programming language made while learning a bit about Functional Programming" /> <meta name="keywords" content="Erlang" /> <meta name="author" content="NewForester" /> <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <link rel="stylesheet" href="../styles/style-sheet.css" />
+<title>
+Learn You Some Erlang Notes: Functional Problem Solving
+</title>
+</head>
+
+<body>
+
+<h1 id="learn-you-some-erlang">Learn You Some Erlang</h1>
+<h2 id="functional-problem-solving">Functional Problem Solving</h2>
+<h3 id="reverse-polish-notation-calculator">Reverse Polish Notation Calculator</h3>
+<p>Everyday arithmetic uses infix notation. Alternatives are prefix notation (aka Polish notation) and postfix notation (aka Reverse Polish Notation).</p>
+<p>Reverse Polish Notation (RPN) was used in early calculators because it takes up little memory. Numbers are pushed onto a stack and operators consume pair of numbers and push a result.</p>
+<p>This exercise is about building an RPN calculator in Erlang. Most of it is explained and little is left to the reader.</p>
+<p>This is a little disappointing as I had hoped it was now my turn to write some Erlang. The description included a couple of bits from libraries that would have needed heavy hints otherwise.</p>
+<p>An Erlang list can operate as a stack with the head being to top-of-stack.</p>
+<p>First, how to parse and expression such as &quot;10 4 3 + 2 * -&quot; ?</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    1&gt; string:tokens(&quot;10 4 3 + 2 * -&quot;, &quot; &quot;).</span>
+    <span class="fu">[</span><span class="st">&quot;10&quot;</span><span class="fu">,</span><span class="st">&quot;4&quot;</span><span class="fu">,</span><span class="st">&quot;3&quot;</span><span class="fu">,</span><span class="st">&quot;+&quot;</span><span class="fu">,</span><span class="st">&quot;2&quot;</span><span class="fu">,</span><span class="st">&quot;*&quot;</span><span class="fu">,</span><span class="st">&quot;-&quot;</span><span class="fu">]</span></code></pre>
+<p>I implemented the basic four functions, not the seven in the tutorial, and ignored the suggestion I add sum and prod functions. I tried to do this without looking at the answers first.</p>
+<p>I added exception handling instead.</p>
+<p>Erlangs view &quot;let it crash&quot; is fine if you are the programmer and you are going to fix the problem. Here we have a user facing calculator that will give very cryptic messages if there are too few or too many numbers or an operand is mistyped.</p>
+<p>This exercise took a whole morning but since it was the first time I have tried to write Erlang without the answers in front of me, perhaps this was not too bad. Hard lessons:</p>
+<ul>
+<li>when you move statements around, you have to redo the full-stops, semi-colons and commas;</li>
+<li>understand the error messages - particularly the run-time error messages;</li>
+<li>if you are writing a function for <code>lists:fold/3</code> then you are not writing a recursive function;</li>
+<li>catching exceptions: look at where they have come from.</li>
+</ul>
+<h3 id="heathrow-to-london">Heathrow to London</h3>
+</body>
+</html>
+
+

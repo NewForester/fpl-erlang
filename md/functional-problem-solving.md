@@ -62,7 +62,54 @@ Hard lessons:
 
 ### Heathrow to London
 
+This is a simple shortest route exercise.
 
+There are two main roads into London from Heathrow and different segments have different travel times.
+There are also a number of side roads that cut through between the main roads.
+The use of these to avoid the slower segments can shorten the journey time.
+Find the shortest journey.
+
+The problem expresses segment times in triples:  road A, road B and cut through X.
+The time from A to A1 is either A1 or B1 + X1 time and so on.
+To calculate the shortest route you need to calculate the shortest route from A and
+the shortest route from B and take the shorter.
+
+I think I would be tempted to do one, then the other but the exercise calculates them in parallel.
+I might also be tempted to calculate them backwards but the exercise calculates the forwards.
+
+First the data has to be read in from a file.
+It is not organised into triples.
+File i/o is a module and has not been covered by the tutorial.
+
+The read is binary (just a list of characters) so needs splitting on white space into strings;
+the strings need converting to integers and then parcelling up into triples.
+
+Solutions to the first two steps were introduced in the RPN Calculator section above.
+The third is a quick recursive function.
+
+This is to set things up to use a fold to do the calculation.
+This is in shorter_step/2 which deals with tuples of {cumulative_distance, path_so_far}.
+The path so far is a list of tuples, representing {segment, segment_length).
+
+The solution all makes sense but I'm not sure I'd dream up the same answer left to my own device
+even given the lengthy description.
+
+It is interesting to see erlang:min/2 applied to tuples.
+No real explanation of how that works.
+
+At the end, the solution needs to pick the shorter path and there are several ways this could be done.
+The one chosen is hd(element(2,AorB)).
+This picks the head of the second tuple member so it is looking to see which path has the final leg {x,0}.
+
+I would probably have compared the calculated times.
+
+It finishes by parametrising the module so you could work out the answer to similar problems from the OS command line
+provide you had a suitable input file.
+
+So, as with the RPN Calculator, it adds sufficient new material that you do need to know to program Erlang in general
+that you would not have been able to solve this problem on your own.
+
+This exercise may not have taken a long as the RPN Calculator but it does not seem that way.
 
 </body>
 </html>

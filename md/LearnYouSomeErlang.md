@@ -42,6 +42,10 @@ Hyper-links reference my notes, not the tutorial source.
   * [Higher Order Functions](higher-order-functions.html)
   * [Errors and Exceptions](errors-exceptions.html)
   * [Functional Problem Solving](functional-problem-solving.html)
+  * [A Short Visit to Common Data Structures](common-data-structures.html)
+
+This covers Erlang the function programming language:
+Erlang the concurrent language is still to be done.
 
 </body>
 </html>

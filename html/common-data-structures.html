@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+    <!-- erlang notes by NewForester is licensed under a Creative Commons Attribution-ShareAlike 4.0 International Licence. -->
+<head>
+    
+<meta charset="UTF-8" /> <meta name="description" content="Notes on the Erlang programming language made while learning a bit about Functional Programming" /> <meta name="keywords" content="Erlang" /> <meta name="author" content="NewForester" /> <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <link rel="stylesheet" href="../styles/style-sheet.css" />
+<title>
+Learn You Some Erlang Notes: Common Data Structures
+</title>
+</head>
+
+<body>
+
+<h1 id="learn-you-some-erlang">Learn You Some Erlang</h1>
+<h2 id="a-short-visit-to-common-data-structures">A Short Visit to Common Data Structures</h2>
+<h3 id="wont-be-long-promised">Won't be long, promised!</h3>
+<p>Earlier sections introduced tuples and lists, the two basic data structures of Erlang. This section is about introducing some of the other data structures.</p>
+<p>Apart from the first subsection on records, all introduce not new Erlang data types, but Erlang libraries that provide the means of handling specific data type abstractions. I think part of the idea is to make the reader aware that there are often alternatives.</p>
+<h3 id="records">Records</h3>
+<p>Records, as in C structures, are a feature of imperative languages before object re-orientation. They do not sit well in functional languages and Erlang is no exception. They are an afterthought, a hack, syntactic sugar that can choke you.</p>
+<p>Nonetheless, they can be useful for small data structures, especially when subject to change on a multi-programmer project.</p>
+<p>Records generally implement CRUD semantics: they hold state. This is viewed as a bad thing in functional programming languages.</p>
+<p>A (perhaps obvious, but perhaps not obvious) consequence of which is that updating a record does not update the record any more than a list operation alters the list. Updating a record returns a modified copy of the record just as a list operation returns a modified copy of the list.</p>
+<p>First of all, you have to declare the record type, The declaration is a module attribute:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang">    <span class="kw">-</span><span class="fu">record(</span><span class="ch">robot</span><span class="fu">,</span> <span class="fu">{</span>
+<span class="er">        name,</span>
+<span class="er">        type=industrial,</span>
+<span class="er">        hobbies,</span>
+<span class="er">        details=[]</span>
+    <span class="fu">}).</span></code></pre>
+<p>Hmm ... looks vaguely like a tuple of names giving names to a tuple of values. The declaration gives default values for only some of the tuple of values. The others may be initialised to 'undefined'.</p>
+<p>Here is an example of declaring a record instance:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang">    <span class="fu">first_robot()</span> <span class="kw">-&gt;</span>
+<span class="er">        #robot{</span>
+<span class="er">            name=&quot;Mechatron&quot;,</span>
+<span class="er">            type=handmade,</span>
+<span class="er">            details=[&quot;Moved by a small man inside&quot;]</span>
+            <span class="fu">}.</span></code></pre>
+<p>However, when you run this:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    1&gt; c(records).</span>
+<span class="er">    {ok,records}</span>
+<span class="er">    2&gt; records:first_robot().</span>
+<span class="er">    {robot,&quot;Mechatron&quot;,handmade,undefined,</span>
+       <span class="fu">[</span><span class="st">&quot;Moved by a small man inside&quot;</span><span class="fu">]}</span></code></pre>
+<p>the record is printed a tuple because that is what it is.</p>
+<p>There is hack in the shell (only I presume) that sugars over this:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    1&gt; rr(records).</span>
+    <span class="fu">[</span><span class="ch">robot</span><span class="fu">]</span>
+<span class="er">    2&gt; records:first_robot().</span>
+<span class="er">    #robot{</span>
+<span class="er">        name=&quot;Mechatron&quot;,</span>
+<span class="er">        type=handmade,</span>
+<span class="er">        hobbies=undefined,</span>
+<span class="er">        details=[&quot;Moved by a small man inside&quot;]</span>
+        <span class="fu">}</span></code></pre>
+<p>The shell has other record related functions:</p>
+<pre><code>* rl/0 - list all record definitions
+* rl/1 - list some record definition(s)
+* rf/0 - forget all record definition(s)
+* rf/1 - forget some record definition(s)
+* rd/2 - define a record definition (instead of using -record(...).)
+* rp/1 - convert tuple to a record</code></pre>
+<p>The rd/1, rl/1 and rf/1 can take lists of record names, each of which can involves wildcards.</p>
+<p>Accessing record fields is, according to the tutorial, ugly:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    1&gt; NestedBot = #robot{details=#robot{name=&quot;erNest&quot;}}.</span>
+<span class="er">    #robot{name = undefined,type = industrial,</span>
+<span class="er">       hobbies = undefined,</span>
+<span class="er">       details = #robot{name = &quot;erNest&quot;,type = industrial,</span>
+<span class="er">                        hobbies = undefined,details = []}}</span>
+<span class="er">    2&gt; (NestedBot#robot.details)#robot.name.</span>
+    <span class="st">&quot;erNest&quot;</span></code></pre>
+<p>Note: Erlang 14 and later do not require the parentheses but earlier releases do.</p>
+<p>Records can be used in function heads to pattern match and in guards:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    -record(user, {id, name, group, age}).</span>
+
+    <span class="co">%% use pattern matching to filter</span>
+<span class="er">    admin_panel(#user{name=Name, group=admin}) -&gt;</span>
+<span class="er">        Name ++ &quot; is allowed!&quot;;</span>
+<span class="er">    admin_panel(#user{name=Name}) -&gt;</span>
+<span class="er">        Name ++ &quot; is not allowed&quot;.</span>
+
+    <span class="co">%% can extend user without problem</span>
+<span class="er">    adult_section(U = #user{}) when U#user.age &gt;= 18 -&gt;</span>
+        <span class="co">%% Show stuff that can&#39;t be written in such a text</span>
+<span class="er">        allowed;</span>
+<span class="er">    adult_section(_) -&gt;</span>
+        <span class="co">%% redirect to sesame street site</span>
+<span class="er">        forbidden.```</span></code></pre>
+<p>Note that the illustration above shows clearly that a function can act on a record without knowing how many fields there are in the record or their order. This is something you cannot do with a tuple.</p>
+<p>Records can be updated:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang">    <span class="fu">repairman(</span><span class="dt">Rob</span><span class="fu">)</span> <span class="kw">-&gt;</span>
+<span class="er">        Details = Rob#robot.details,</span>
+<span class="er">        NewRob = Rob#robot{details=[&quot;Repaired by repairman&quot;|Details]},</span>
+<span class="er">        {repaired, NewRob}.</span></code></pre>
+<p>and then:</p>
+<pre class="sourceCode erlang"><code class="sourceCode erlang"><span class="er">    1&gt; c(records).</span>
+<span class="er">        {ok,records}</span>
+<span class="er">    2&gt; records:repairman(#robot{name=&quot;Ulbert&quot;, hobbies=[&quot;trying to have feelings&quot;]}).</span>
+<span class="er">    {repaired,#robot{name = &quot;Ulbert&quot;,type = industrial,</span>
+                 <span class="ch">hobbies</span> <span class="kw">=</span> <span class="fu">[</span><span class="st">&quot;trying to have feelings&quot;</span><span class="fu">],</span>
+<span class="er">                 details = [&quot;Repaired by repairman&quot;]}}</span></code></pre>
+<p>but underneath is a call to <code>erlang:setelement/3</code> which return an updated copy of the original tuple.</p>
+<h4 id="a-note-on-header-files-...">A note on header files ...</h4>
+<p>Erlang does support header files. However, the tutorial distrusts them: they are a mechanism by which other languages share data but in functional programming languages, the whole idea is not to share data.</p>
+<p>The syntax is:</p>
+<pre class="sourceCode Erlang"><code class="sourceCode erlang">  <span class="kw">-</span><span class="fu">include(</span><span class="st">&quot;records.hrl&quot;</span><span class="fu">)</span></code></pre>
+<p>It may be used to share record definitions between modules. While this is common practice, the tutorial views this as bad practice: a module should encapsulate all data structures is requires and present only a simple function call interface.</p>
+<h3 id="key-value-stores">Key-Value Stores</h3>
+<p>Key-value stores are build into many languages (i.e. the dict of Python) but not, historically, Erlang (or functional languages in general).</p>
+<p>Instead there are a number of libraries available. Four are introduced below but there are even more specialised libraries for use with concurrency (such as the <code>mnesia</code> database).</p>
+<h4 id="property-lists">Property Lists</h4>
+<p>This is a list of {Key,Value} tuples. This is a very simple and loose definition.</p>
+<p>The <code>proplists</code> library provide some functions that help work with such property lists but it is far from complete (no add or update functions).</p>
+<p>Use it for small lists. An example might be for configuration options read from an ini file.</p>
+<h4 id="ordered-dictionaries">Ordered Dictionaries</h4>
+<p>The <code>orddict</code> library is more formal and complete. The values of Keys are unique and the the dictionary is ordered for faster lookups.</p>
+<p>These are good for CRUD semantics on small data sets (up to 75 keys or so).</p>
+<h4 id="dictionaries">Dictionaries</h4>
+<p>The <code>dict</code> library provides the same interface and is a better choice for larger data sets. It also has useful higher level functions such as dict:map/2 and dict:fold/2.</p>
+<h4 id="general-balanced-trees">General Balanced Trees</h4>
+<p>The <code>gb-trees</code> library provides yet more functions that provide finer control over the data set.</p>
+<p>This library provides two modes 'naive' and 'smart'. The latter is for when you understand your structure inside and out.</p>
+<p>One difference between the two is the 'naive' mode chooses when to rebalance the tree while 'smart' mode leaves it to the programmer to decide.</p>
+<p>This library has a gb_trees:map/2 function but no fold function. Instead there are iterators so that you can implement your own recursive fold functions.</p>
+<p>It would seem that this library is slower in the general retrieval case but faster for operations that alter the tree.</p>
+<h4 id="postscript-maps">Postscript Maps</h4>
+<p>With Erlang 17, the language has a native key-value data type. See <a href="http://learnyousomeerlang.com/maps">Postscript Maps</a>.</p>
+<p>This should be the defacto replacement for <code>dict</code> library.</p>
+<h3 id="arrays">Arrays</h3>
+<p>These are not a comfortable data structure in Erlang.</p>
+<p>There is an <code>array</code> library but it cannot offer constant time insertion or lookup.</p>
+<p>It does, however, have a fold function that will skip undefined slots.</p>
+<p>Erlang is not good with arrays and matrices. Erlang programs often use <code>ports</code> to export heavy lifting work to other languages.</p>
+<h3 id="a-set-of-sets">A Set of Sets</h3>
+<p>There is no 'best' way to implement sets in a language like Erlang so there are four libraries to choose from.</p>
+<p>Sadly, they are not flexible enough to be compatible. <code>sets</code> uses =:=, while the others use ==. Thus <code>sets</code> views 2 and 2.0 as distinct keys, which the others do not.</p>
+<h4 id="ordered-sets">Ordered Sets</h4>
+<p>These are implemented as a sorted lists in the <code>ordsets</code> module.</p>
+<p>They offers the simplest and most readable representation but are the slowest. Good for small sets.</p>
+<h4 id="sets">Sets</h4>
+<p>The <code>sets</code> library uses a structure very similar to that used by the <code>dict</code> library.</p>
+<p>They have the same interface as ordered sets but scale better. They are good at retrieval.</p>
+<h4 id="general-balance-sets">General Balance Sets</h4>
+<p>The <code>gb_sets</code> library is built on the <code>gb_trees</code> library.</p>
+<p>They are faster for operations that change the set, offer a compatible interface but also extra functions including 'naive' and 'smart' modes, iterators and quick access to first and last.</p>
+<h4 id="set-of-sets">Set of Sets</h4>
+<p>The <code>sofs</code> library implements something much closer to the mathematical concept of sets than the others (which implement groups of unique elements). They sound quite specialised.</p>
+<h3 id="directed-graphs">Directed Graphs</h3>
+<p>These are supported by the <code>digraph</code> and <code>digraph_utils</code> modules.</p>
+<p>These are a mathematical data structure that I guess has applications in networking, which might explain why they are mentioned when many other languages have no direct or indirect support for them.</p>
+<p>In mathematics they are closely related to sets and the <code>sofs</code> module provides some support for conversion between sets and directed graphs.</p>
+<h3 id="queues">Queues</h3>
+<p>Erlang lists are implicitly LIFO data structures. It is cheap to add to and remove from the head of a list. It is expensive to add to and remove from the end of a list because there is no tail pointer.</p>
+<p>Tail recursion implicitly reverses a list and most tail recursive functions have a call to lists:reverse/1 as their final action.</p>
+<p>When you need FIFO operation, cannot reverse a list all in one go or the list is long lived but its contents are not, you may be better off using the <code>queue</code> module.</p>
+<p>This module has one API that, mentally, can be divided into three:</p>
+<ul>
+<li>original API - the basic queue concept;</li>
+<li>extended API - with nice-to-have functions;</li>
+<li>Okasaki API - a purely functional interface but a bit weird.</li>
+</ul>
+<h3 id="end-of-the-short-visit">End of the short visit</h3>
+<p>The section ends with encouragement to explore the Erlang (http://www.erlang.org/doc/apps/stdlib/index.html)[standard] and (http://www.erlang.org/doc/applications.html)[extended] libraries for oneself.</p>
+<p>Although we appear to be only a third of the way through, this completes the examination of Erlang the functional programming language. The tutorial suggests that folk are much more interested in the Erlang the concurrent language.</p>
+<p>I hope this means that the sections in the rest of the tutorial are smaller and more focused.</p>
+</body>
+</html>
+
+

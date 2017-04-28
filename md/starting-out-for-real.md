@@ -115,10 +115,8 @@ The following 30 atoms are reserved words in Erlang:
   * Function conditionals       - when, if ... end, case ... of ... end
   * Anonymous functions         - fun ... end
   * Exceptions                  - try ... of ... catch ... after ... end
-
-  * begin cond
-  * (end)
-  * let query receive
+  * Message passing             - receive ... after ... end
+  * other                       - begin cond let query
 
 
 ### Boolean Algebra and Comparison Operators

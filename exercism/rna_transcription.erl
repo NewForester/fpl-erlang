@@ -5,29 +5,22 @@
 -import(lists, [reverse/1]).
 
 to_rna(Strand) ->
-  to_rna(Strand,[]).
+    [complement(Amino) || Amino <- Strand].
 
-to_rna([], RnaStrand) ->
-    reverse(RnaStrand);
-to_rna(DnaStrand, RnaStrand) ->
-    [H|T] = DnaStrand,
-    Complement = case H of
-        71 -> 67;
-        67 -> 71;
-        84 -> 65;
-        65 -> 85;
-        _ -> 6
-        end,
-    to_rna(T, [Complement|RnaStrand]).
+complement(Amino) ->
+    case Amino of
+        $G -> $C;
+        $C -> $G;
+        $T -> $A;
+        $A -> $U;
+        _ -> Amino
+    end.
 
 test_version() -> 1.
 
 %%
-%% Oops.  No need to use numbers ... $C $G, $A, $T and %U are so much better.
+%% Second attempt.  Uses:
 %%
-%% Then ...
-%%      implement a function to complement a single nucleotide and wrap that
-%%      in a list comprehension
-%%
-%% No need for the recursion or to reverse the result. Sniff.
+%%   - character constants
+%%   - a list comprehension
 %%

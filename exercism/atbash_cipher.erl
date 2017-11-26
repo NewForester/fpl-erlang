@@ -2,65 +2,72 @@
 
 -export([encode/1, decode/1, test_version/0]).
 
--define(SPACE, 32).
+-define(SPACE, $\s).
+-define(CHUNK_SIZE, 5).
+
+% ----------------------------------------------
 
 encode(String) ->
-    encode(String, 0, []).
+    Encode =
+        fun
+            (H, {C, R})
+                when H >= $a, H =< $z ->
+                    {C + 1, [$a + $z - H | chunk(C, R)]};
+            (H, {C, R})
+                when H >= $A, H =< $Z ->
+                    {C + 1, [$a + $Z - H | chunk(C, R)]};
+            (H, {C, R})
+                when H >= $0, H =< $9 ->
+                    {C + 1, [H | chunk(C, R)]};
+            (_, {C, R}) ->
+                    {C, R}
+        end,
+
+    {_, R} = lists:foldl(Encode, {0, []}, String),
+
+    lists:reverse(R).
+
+% --
+
+chunk(0, R) ->
+        R;
+chunk(C, R)
+    when C rem ?CHUNK_SIZE == 0 ->
+        [?SPACE | R];
+chunk(_, R) ->
+        R.
+
+% ----------------------------------------------
 
 decode(String) ->
     [atbash(L) || L <- String, L /= ?SPACE].
 
-encode([], _, R) ->
-    lists:reverse(R);
-encode([H|T], C, R) when H >= $a, H =< $z ->
-    encode(T, C + 1, atbash(H, C, R));
-encode([H|T], C, R) when H >= $A, H =< $Z ->
-    encode(T, C + 1, atbash(H, C, R));
-encode([H|T], C, R) when H >= $0, H =< $9 ->
-    encode(T, C + 1, atbash(H, C, R));
-encode([_|T], C, R) ->
-    encode(T, C, R).
+% --
 
-atbash(Letter) when Letter >= $a, Letter =< $z ->
-    $a + 25 - (Letter - $a);
-atbash(Letter) when Letter >= $A, Letter =< $Z ->
-    $a + 25 - (Letter - $A);
+atbash(Letter)
+    when Letter >= $a, Letter =< $z ->
+        $a + $z - Letter;
 atbash(Letter) ->
-    Letter.
+        Letter.
 
-atbash(H, C, R) when C rem 5 == 0 andalso C /= 0 ->
-    [atbash(H) | [?SPACE | R]];
-atbash(H, _, R) ->
-    [atbash(H) | R].
+% ----------------------------------------------
 
 test_version() -> 1.
 
 %%
-%% erlang has few libraries when compared with other language.  This solution
-%% uses just list:reverse and has been refactored until there are no if's or
-%% cases, only function headers with guards.
+%% Incorporating inspiration from three different solutions:
 %%
-%% There are a couple of trivial things I missed:
+%% - don't be afraid to lay the code out so it can be read
+%% - several expressions optimised
+%% - use foldl instead of recursion
 %%
-%% - the constant representing a space can be written `$ ` but `$\s' is to be preferred
-%% - the conversion is, if course, $a + ($z - C) or $a + ($z - C)
+%% I shied away from too many blank lines.
+%% I used macros and got the expression for <space> correct.
+%% I rationalised the conversion expression.
 %%
-%% Here are a couple of things I didn't know but can't use here:
+%% It seems that although foldl takes a routine as a parameter,
+%% you have to use a lambda to wrap up the function call.  D'oh!
 %%
-%% - seq($a, $z) is a string representing the alphabet
-%% - in a guard [H | T] = String allow you to refer to the whole String
-%%
-%% My solution uses only lists:reverse().  Other solutions used:
-%%
-%% - lists:flatten
-%% - lists:filtermap
-%% - maps:from_list and maps:get
-%% - lists:map and lists:filter
-%% - lists:split and then string:join
-%% - re:replace
-%%
-%% This first iteration:
-%%
-%% - is not that easy to read
-%% - uses recursion because there are three parameters - use a tuple and foldl
+%% Using foldl eliminates some overhead but creates other overhead,
+%% such as the need to reverse the result at the top level.
 %%

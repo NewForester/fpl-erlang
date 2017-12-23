@@ -1,17 +1,15 @@
--module(pangram).
+-module(example).
 
 -export([is_pangram/1, test_version/0]).
 
 is_pangram(Sentence) ->
-    Alpha = "abcdefghijklmnopqrstuvwxyz",
-    Lower = string:to_lower(Sentence),
+    Lewand = "zqxjkvbpygfwmucldrhsnioate",      % least common letter first, most common last
 
-    lists:all(fun (A) -> lists:any(fun (L) -> A == L end, Lower) end, Alpha).
+    lists:all(fun (A) -> lists:any(fun (L) -> A == string:to_lower(L) end, Sentence) end, Lewand).
 
 test_version() -> 1.
 
 %%
-%% This is my 'example.erl'.
+%%  Add Lewand optimisation
 %%
-%% Erlang's lambda syntax is not as clumsy as some but not as good as others.
-%%
+

@@ -3,19 +3,20 @@
 -export([is_isogram/1, test_version/0]).
 
 is_isogram(String) ->
-    Clean = [C || C <- string:to_lower(String), $a =< C, C =< $z],
-    length(Clean) =< 26 andalso check_isogram(Clean).
+    is_isogram(String, sets:new()).
 
-check_isogram("") ->
+is_isogram([], _) ->
     true;
-check_isogram([H|T]) ->
-    not lists:member(H, T) andalso check_isogram(T).
+is_isogram([H|T], LS) when $a =< H, H =< $z ->
+    not sets:is_element(H, LS) andalso is_isogram(T, sets:add_element(H, LS));
+is_isogram([H|T], LS) when $A =< H, H =< $Z ->
+    L = string:to_lower(H),
+    not sets:is_element(L, LS) andalso is_isogram(T, sets:add_element(L, LS));
+is_isogram([H|T], LS) ->
+    is_isogram(T, LS).
 
-test_version() ->
-    1.
+test_version() -> 1.
 
 %%
-%% This is an improvement over my 'example.erl'.
-%% It exploits the fact that an alphabetic string
-%% of more than 26 characters cannot be an isogram.
+%% Check current letter against those already processed, not those still to process
 %%

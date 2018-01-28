@@ -5,18 +5,36 @@
 sieve(N) when N < 2 ->
     [];
 sieve(N) ->
-    sieve(lists:seq(2,N), [], math:sqrt(N)).
+    sieve(array:new([{size, N + 1}, {fixed, true}, {default, true}]), 3, N).
 
-sieve([], P, _) ->
-    lists:reverse(P);
-sieve([N|S], P, L) when N < L ->
-    R = lists:filter(fun(X) -> X rem N /= 0 end, S),
-    sieve(R, [N|P], L);
-sieve([N|S], P, L) ->
-    sieve(S, [N|P], L).
+sieve(A, C, N) when C * C > N ->
+    ArrayToPrimes =
+        fun
+            (I, _, Acc) when I band 1 == 0 orelse I < 2 ->
+                Acc;
+            (I, P, Acc) when P ->
+                [I | Acc];
+            (_, _, Acc) ->
+                Acc
+        end,
+
+    [2 | array:foldr(ArrayToPrimes, [], A)];
+sieve(A, P, N) ->
+    sieve(sift(A, P, N), P + 1, N).
+
+sift(A, P, N) ->
+    case array:get(P, A) of
+        true -> sift(A, P + P + P, P, N);
+        false -> A
+    end.
+
+sift(A, I, _, N) when I > N ->
+    A;
+sift(A, I, P, N) ->
+    sift(array:set(I, false, A), I + P + P, P, N).
 
 test_version() -> 1.
 
 %%
-%%  Add square root optimisation
+%%  Genuine sieve that uses an array container
 %%

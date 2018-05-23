@@ -5,36 +5,38 @@
 sieve(N) when N < 2 ->
     [];
 sieve(N) ->
-    sieve(array:new([{size, N + 1}, {fixed, true}, {default, true}]), 3, N).
+    A = array:new([{size, N + 1}, {fixed, true}, {default, true}]),
 
-sieve(A, C, N) when C * C > N ->
     ArrayToPrimes =
         fun
-            (I, _, Acc) when I band 1 == 0 orelse I < 2 ->
-                Acc;
-            (I, P, Acc) when P ->
+            (I, true, Acc) when I >= 2 ->
                 [I | Acc];
             (_, _, Acc) ->
                 Acc
         end,
 
-    [2 | array:foldr(ArrayToPrimes, [], A)];
-sieve(A, P, N) ->
-    sieve(sift(A, P, N), P + 1, N).
+    lists:reverse(array:foldl(ArrayToPrimes, [], sieve(N, 2, true, A))).
 
-sift(A, P, N) ->
-    case array:get(P, A) of
-        true -> sift(A, P + P + P, P, N);
-        false -> A
-    end.
-
-sift(A, I, _, N) when I > N ->
+sieve(N, C, _, A) when N < C * C ->
     A;
-sift(A, I, P, N) ->
-    sift(array:set(I, false, A), I + P + P, P, N).
+sieve(N, C, true, A) ->
+    sieve(N, C + 1, array:get(C + 1, A), sift(N, C, A));
+sieve(N, C, false, A) ->
+    sieve(N, C + 1, array:get(C + 1, A), A).
+
+sift(N, 2, A) ->
+    sift(N, 2 * 2, 2, A);
+sift(N, P, A) ->
+    sift(N, P * P, 2 * P, A).
+
+sift(N, I, _, A) when N < I ->
+    A;
+sift(N, I, S, A) ->
+    sift(N, I + S, S, array:set(I, false, A)).
 
 test_version() -> 1.
 
 %%
-%%  Genuine sieve that uses an array container
+%%  Genuine sieve solution tidied up
 %%
+

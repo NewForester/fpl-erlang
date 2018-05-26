@@ -2,21 +2,31 @@
 
 -export([is_isogram/1, test_version/0]).
 
-is_isogram(String) ->
-    is_isogram(String, sets:new()).
+foldl(_, Acc, []) -> {false, Acc};
+foldl(F, Acc, [H|T]) ->
+    case F(H, Acc) of
+        {true, A} -> {true, A};
+        {false, A} -> foldl(F, A, T)
+    end.
 
-is_isogram([], _) ->
-    true;
-is_isogram([H|T], LS) when $a =< H, H =< $z ->
-    not sets:is_element(H, LS) andalso is_isogram(T, sets:add_element(H, LS));
-is_isogram([H|T], LS) when $A =< H, H =< $Z ->
-    L = string:to_lower(H),
-    not sets:is_element(L, LS) andalso is_isogram(T, sets:add_element(L, LS));
-is_isogram([H|T], LS) ->
-    is_isogram(T, LS).
+is_isogram(C, S) ->
+    case string:to_lower(C) of
+        L when $a =< L, L =< $z -> test_not_seen(L, S);
+        _ -> {false, S}
+    end.
+
+test_not_seen(L, S) ->
+    case ordsets:is_element(L, S) of
+        true -> {true, S};
+        false -> {false, ordsets:add_element(L, S)}
+    end.
+
+is_isogram(String) ->
+    {R, _} = foldl(fun is_isogram/2, ordsets:new(), String),
+    not R.
 
 test_version() -> 1.
 
 %%
-%% Check current letter against those already processed, not those still to process
+%%  This solution adds a special foldl that allows early return.
 %%
